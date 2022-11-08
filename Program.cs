@@ -16,7 +16,8 @@ namespace Bot_CoursePaper
         static ITelegramBotClient bot = new TelegramBotClient("TOKEN");
         
         private static string _newAnimal = "",  //для создания животного
-                            _search = "undefined"; //для поиска 
+                            _search = "undefined", //для поиска 
+                            _deleteName = "undefined"; //для удаления
 
         static void Main(string[] args)
         {
@@ -62,15 +63,13 @@ namespace Bot_CoursePaper
                 return;
             }
 
-            await botClient.SendTextMessageAsync(
-                update.Message.Chat.Id, "Я не воспринимаю стикеры/фото/эмодзи/видео");
+            await botClient.SendStickerAsync(
+                update.Message.Chat.Id, @"https://i0.wp.com/www.printmag.com/wp-content/uploads/2021/02/4cbe8d_f1ed2800a49649848102c68fc5a66e53mv2.gif?fit=476%2C280&ssl=1");
         }
-
+        
         private static async Task HandlerMessage(ITelegramBotClient botClient, Message message)
         {
-            if (_newAnimal != "" && _newAnimal != "/start" && _newAnimal != "Добавить"
-                && _newAnimal != "Отобразить" && _newAnimal != "Удалить"
-                && _newAnimal != "Отсортировать" && _newAnimal != "Поиск")
+            if (_newAnimal != "")
             {
                 _newAnimal += message.Text;
                 
@@ -80,13 +79,19 @@ namespace Bot_CoursePaper
                 return;
             }
 
-            if (_search == "" && _search != "/start" && _search != "Добавить"
-                && _search != "Отобразить" && _search != "Удалить"
-                && _search != "Отсортировать" && _search != "Поиск")
+            if (_search == "")
             {
                 await botClient.SendTextMessageAsync(
-                    message.Chat.Id, Actions.Display(Actions.Search(message.Text)));
-                _search = "undefined";
+                    message.Chat.Id, Actions.Display(Actions.Search(message.Text.Trim().ToLower())));
+                _search = message.Text;
+                return;
+            }
+
+            if (_deleteName == "")
+            {
+                await botClient.SendTextMessageAsync(
+                    message.Chat.Id, Actions.RemoveAnimal(message.Text.Trim().ToLower()));
+                _deleteName = message.Text;
                 return;
             }
 
@@ -109,7 +114,8 @@ namespace Bot_CoursePaper
                     return;
                 
                 case "Удалить":
-                    await botClient.SendTextMessageAsync(message.Chat.Id, "Себя удали. Это мои рыбки!");
+                    await botClient.SendTextMessageAsync(message.Chat.Id, "Введи наименование морского обитателя");
+                    _deleteName = "";
                     return;
                 
                 case "Отсортировать":

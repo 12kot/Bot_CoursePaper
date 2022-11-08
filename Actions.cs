@@ -36,7 +36,10 @@ public static class Actions
         try
         {
             if (Int32.Parse(st[2]) <= 0 || Int32.Parse(st[3]) <= 0)
-                throw new Exception();
+                return "Введены неверные числовые значения";
+            
+            if (CheckName(st[1].ToLower()))
+                return "Морские обитатели с таким наименованием существуют";
                 
             switch (st[0].ToLower())
             {
@@ -65,22 +68,17 @@ public static class Actions
         return "Морской обитатель успешно добавлен";
     }
 
-    public static void RemoveAnimal()
+    public static string RemoveAnimal(string name)
     {
-        Display(Animals);
-        
-        if(Animals.Count == 0) return;
-        
-        Console.Write("Введите наименование морского обитателя: ");
-        string name = Console.ReadLine() ?? "";
+        if(Animals.Count == 0) return "Морских обитателей нет";
 
-        foreach (var animal in Animals.Where(animal => animal.Name.Equals(name)))
+        foreach (var animal in Animals.Where(animal => animal.Name.Trim().ToLower().Equals(name)))
         {
             Animals.Remove(animal);
-            return;
+            return Display(new List<Animal>{animal}) + "\nУспешно удалён";
         }
         
-        Console.WriteLine("Морские обитатели с заданным наименованием не найдены.");
+        return "Морские обитатели с заданным наименованием не найдены";
     }
     
     public static string Display(List<Animal> animals)
@@ -100,9 +98,26 @@ public static class Actions
     public static List<Animal> Search(string str)
     {
         if (Animals.Count == 0) return new List<Animal>();
+        List<string> names = new List<string>();
+        List<Animal> an = new List<Animal>();
 
+        foreach (var animal in 
+                 from animal in Animals 
+                 from s in str.ToLower().Split(" ") 
+                 where animal.ToString().Contains(s) && !names.Contains(animal.Name) select animal)
+        {
+            an.Add(animal);
+            names.Add(animal.Name);
+        }
+
+        return an;
         return (from animal in Animals 
             from s in str.ToLower().Split(" ") 
             where animal.ToString().ToLower().Contains(s) select animal).ToList();
+    }
+
+    private static bool CheckName(string name)
+    {
+        return Animals.Any(animal => animal.Name.ToLower() == name);
     }
 }
