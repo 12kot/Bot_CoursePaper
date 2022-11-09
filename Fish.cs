@@ -1,13 +1,17 @@
-﻿namespace S3_CoursePaper;
+﻿namespace Bot_CoursePaper;
 // Рыбы
 public class Fish : Vertebrate
 {
-    private const string AnimalType = "Рыба";
+    public string AnimalType { get; }
     
-    public Fish(string name, int population, int age) : base(name, population, age, AnimalType)
+    public Fish(string name, int population, int age) : base(name, population, age)
     {
+        AnimalType = "Рыба";
     }
+
+    public override string Move() => $"Я {AnimalType}";
     
+    private Fish(){}
     /*public override string ToString()
     {
         return $"{AnimalType, 14}\t" + base.ToString();

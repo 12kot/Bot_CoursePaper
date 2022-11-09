@@ -1,34 +1,32 @@
 ﻿// See https://aka.ms/new-console-template for more information
-namespace S3_CoursePaper;
 
-public static class Actions
+using System.Xml;
+using System.Xml.Serialization;
+
+namespace Bot_CoursePaper;
+[XmlInclude(typeof(Mammal))]
+[XmlInclude(typeof(Fish))]
+[XmlInclude(typeof(Arthropod))]
+[XmlInclude(typeof(Crustacean))]
+
+public class Actions
 {
-    public static List<Animal> Animals { get; } = new List<Animal>();
-    
-    private static void Menu()
-    {
-        Console.WriteLine("1. Добавить морского обитателя.\n" +
-                          "2. Удалить морского обитателя.\n" +
-                          "3. Вывести список морских обитателей.\n" +
-                          "4. Поиск.\n" +
-                          "5. Сортировка.\n");
-    }
+    public List<Animal> Animals { get; set; } = new List<Animal>();
 
-    public static void SortByClass() =>
+    public void SortByClass() =>
         Animals.Sort((x, y) => String.Compare(x.AnimalClass, y.AnimalClass,
             StringComparison.Ordinal));
     
-    public static void SortByName() =>
+    public void SortByName() =>
         Animals.Sort((x, y) => String.Compare(x.Name, y.Name, StringComparison.Ordinal));
     
-    public static void SortByAge() =>
+    public void SortByAge() =>
         Animals.Sort((x, y) => x.Age.CompareTo(y.Age));
     
-    public static void SortByPopulation() =>
+    public void SortByPopulation() =>
         Animals.Sort((x, y) => x.Population.CompareTo(y.Population));
-    
 
-    public static string AddAnimal(string str)
+    public string AddAnimal(string str)
     {
         string[] st = str.Split(" ");
         if (st.Length != 4) return "Неверное кол-во параметров";
@@ -68,56 +66,61 @@ public static class Actions
         return "Морской обитатель успешно добавлен";
     }
 
-    public static string RemoveAnimal(string name)
+    public string RemoveAnimal(string name)
     {
         if(Animals.Count == 0) return "Морских обитателей нет";
 
         foreach (var animal in Animals.Where(animal => animal.Name.Trim().ToLower().Equals(name)))
         {
             Animals.Remove(animal);
-            return Display(new List<Animal>{animal}) + "\nУспешно удалён";
+            return Display(new List<Animal> {animal} ) + "\nУспешно удалён";
         }
         
         return "Морские обитатели с заданным наименованием не найдены";
     }
     
-    public static string Display(List<Animal> animals)
-         {
-             if(animals.Count == 0) return "Морские обитатели отсутствуют.";
+    public string Display(List<Animal> animals)
+    {
+        if(animals.Count == 0) return "Морские обитатели отсутствуют.";
+        
+        string str = "Класс | Тип | Наименование | Популяция | Возраст\n\n";
+        int i = 0;
+             
+        foreach (var animal in animals) {
+            str += ++i + ". " + animal + "\n";
+        }
 
-             string str = "Класс | Тип | Наименование | Популяция | Возраст\n\n";
-             int i = 0;
-             foreach (var animal in animals)
-             {
-                 str += ++i + ". " + animal + "\n";
-             }
+        return str;
+    }
 
-             return str;
-         }
-
-    public static List<Animal> Search(string str)
+    public List<Animal> Search(string str)
     {
         if (Animals.Count == 0) return new List<Animal>();
+        
         List<string> names = new List<string>();
         List<Animal> an = new List<Animal>();
 
-        foreach (var animal in 
-                 from animal in Animals 
-                 from s in str.ToLower().Split(" ") 
-                 where animal.ToString().Contains(s) && !names.Contains(animal.Name) select animal)
+        foreach (var animal in Animals)
         {
-            an.Add(animal);
-            names.Add(animal.Name);
+            foreach (var s in str.Trim().ToLower().Split(" "))
+            {
+                if(animal.ToString().Contains(s) && !names.Contains(animal.Name)) {
+                    an.Add(animal);
+                    names.Add(animal.Name);
+                }
+            }
         }
-
+        
         return an;
-        return (from animal in Animals 
-            from s in str.ToLower().Split(" ") 
-            where animal.ToString().ToLower().Contains(s) select animal).ToList();
     }
 
-    private static bool CheckName(string name)
+    private bool CheckName(string name) =>
+        Animals.Any(animal => animal.Name.ToLower() == name);
+    
+    public void SerialiseToXml()
     {
-        return Animals.Any(animal => animal.Name.ToLower() == name);
+        XmlSerializer xmlSerializer = new XmlSerializer(GetType());
+        StreamWriter write = new StreamWriter(@"C:\Users\User\RiderProjects\Bot_CoursePaper\Bot_CoursePaper\ocean.xml");
+        xmlSerializer.Serialize(write, this);
     }
 }

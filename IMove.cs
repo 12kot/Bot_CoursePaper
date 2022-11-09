@@ -1,6 +1,6 @@
-﻿namespace S3_CoursePaper;
+﻿namespace Bot_CoursePaper;
 
 public interface IMove
 {
-    void Move();
+    string Move();
 }

@@ -1,25 +1,33 @@
-﻿namespace S3_CoursePaper;
+﻿namespace Bot_CoursePaper;
 
 public abstract class Animal : IMove
 {
-    public string Name { get; }
-    public int Population { get; }
-    public int Age { get; }
-    
-    public string AnimalClass { get; }
+    public string Name { get; set; }
+    public int Population { get; set; }
+    public int Age { get; set; }
 
-    protected Animal(string name, int population, int age, string type)
+    public string AnimalClass
+    {
+        get
+        {
+            return this is Invertebrate ? "Беспозвоночное" : "Позвоночное";
+        }
+    }
+
+    protected Animal(string name, int population, int age)
     {
         Name = name;
         Population = population;
         Age = age;
-        AnimalClass = type;
     }
+
+    public abstract string Move();
 
     public override string ToString()
     {
-        return $"{Name} | {Population} | {Age}";
+        return (this is Invertebrate ? "Беспозвоночное" : "Позвоночное") +
+               $" | {GetType().ToString().Split(".")[1]} | {Name} | {Population} | {Age}";
     }
-
-    public abstract void Move();
+    
+    protected Animal(){}
 }

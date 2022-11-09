@@ -1,13 +1,17 @@
-﻿namespace S3_CoursePaper;
+﻿namespace Bot_CoursePaper;
 // Млекопитающие
 public class Mammal : Vertebrate
 {
-    private const string AnimalType = "Млекопитающее";
+    public string AnimalType { get; }
     
-    public Mammal(string name, int population, int age) : base(name, population, age, AnimalType)
+    public Mammal(string name, int population, int age) : base(name, population, age)
     {
+        AnimalType = "Млекопитающее";
     }
     
+    public override string Move() => $"Я {AnimalType}";
+    
+    private Mammal(){}
     /*public override string ToString()
     {
         return $"{AnimalType, 14}\t" + base.ToString();
