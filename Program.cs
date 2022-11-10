@@ -16,7 +16,7 @@ namespace Bot_CoursePaper
     {
         private static Actions actions = new Actions();
         
-        static ITelegramBotClient bot = new TelegramBotClient("TOKEN");
+        static ITelegramBotClient bot = new TelegramBotClient("5603713455:AAGTlrFcSOBUrr0qZ2zVJZBiu0u5P-T5n1Y");
         
         private static string _newAnimal = "",  //для создания животного
                             _search = "undefined", //для поиска 
@@ -63,15 +63,17 @@ namespace Bot_CoursePaper
             // Некоторые действия
             Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(update));
 
-            if (update.Type == UpdateType.Message && update.Message?.Text != null)
-            {
-                await HandlerMessage(botClient, update.Message);
-                return;
-            }
-
             if (update.Type == UpdateType.CallbackQuery)
             {
                 await HandleCallbackQuery(botClient, update.CallbackQuery);
+                return;
+            }
+            
+            if (update.Message == null) return;
+            
+            if (update.Type == UpdateType.Message && update.Message?.Text != null)
+            {
+                await HandlerMessage(botClient, update.Message);
                 return;
             }
 
