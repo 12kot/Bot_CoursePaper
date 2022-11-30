@@ -1,6 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
-
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 using Bot_CoursePaper.Animals;
 
 namespace Bot_CoursePaper.Logic;
@@ -12,20 +10,20 @@ namespace Bot_CoursePaper.Logic;
 
 public class Actions
 {
-    public List<Animal> Animals { get; set; } = new List<Animal>();
+    private readonly List<Animal> _animals = new List<Animal>();
 
     public void SortByClass() =>
-        Animals.Sort((x, y) => String.Compare(x.AnimalClass, y.AnimalClass,
+        _animals.Sort((x, y) => String.Compare(x.AnimalClass, y.AnimalClass,
             StringComparison.Ordinal));
     
     public void SortByName() =>
-        Animals.Sort((x, y) => String.Compare(x.Name, y.Name, StringComparison.Ordinal));
+        _animals.Sort((x, y) => String.Compare(x.Name, y.Name, StringComparison.Ordinal));
     
     public void SortByAge() =>
-        Animals.Sort((x, y) => x.Age.CompareTo(y.Age));
+        _animals.Sort((x, y) => x.Age.CompareTo(y.Age));
     
     public void SortByPopulation() =>
-        Animals.Sort((x, y) => x.Population.CompareTo(y.Population));
+        _animals.Sort((x, y) => x.Population.CompareTo(y.Population));
     
     public string AddAnimal(string str)
     {
@@ -43,16 +41,16 @@ public class Actions
             switch (st[0])
             {
                 case "членистоногое":
-                    Animals.Add(new Arthropod(st[1], Int32.Parse(st[2]), Int32.Parse(st[3])));
+                    _animals.Add(new Arthropod(st[1], Int32.Parse(st[2]), Int32.Parse(st[3])));
                     break;
                 case "ракообразное":
-                    Animals.Add(new Crustacean(st[1], Int32.Parse(st[2]), Int32.Parse(st[3])));
+                    _animals.Add(new Crustacean(st[1], Int32.Parse(st[2]), Int32.Parse(st[3])));
                     break;
                 case "млекопитающее":
-                    Animals.Add(new Mammal(st[1], Int32.Parse(st[2]), Int32.Parse(st[3])));
+                    _animals.Add(new Mammal(st[1], Int32.Parse(st[2]), Int32.Parse(st[3])));
                     break;
                 case "рыба":
-                    Animals.Add(new Fish(st[1], Int32.Parse(st[2]), Int32.Parse(st[3])));
+                    _animals.Add(new Fish(st[1], Int32.Parse(st[2]), Int32.Parse(st[3])));
                     break;
 
                 default:
@@ -69,17 +67,21 @@ public class Actions
 
     public string RemoveAnimal(string name)
     {
-        if(Animals.Count == 0) return "Морские обитатели отсутствуют";
+        if(_animals.Count == 0) return "Морские обитатели отсутствуют";
 
-        foreach (var animal in Animals.Where(animal => animal.Name.Equals(name)))
+        foreach (var animal in _animals.Where(animal => animal.Name.Equals(name)))
         {
-            Animals.Remove(animal);
+            _animals.Remove(animal);
             return Display(new List<Animal> {animal} ) + "\nУспешно удалён";
         }
         
         return "Морские обитатели с данным именем не найдены";
     }
-    
+
+    public string Display()
+    {
+        return Display(_animals);
+    }
     public string Display(List<Animal> animals)
     {
         if(animals.Count == 0) return "Морские обитатели отсутствуют.";
@@ -96,12 +98,12 @@ public class Actions
 
     public List<Animal> Search(string str)
     {
-        if (Animals.Count == 0) return new List<Animal>();
+        if (_animals.Count == 0) return new List<Animal>();
         
         List<string> names = new List<string>();
         List<Animal> an = new List<Animal>();
 
-        foreach (var animal in Animals)
+        foreach (var animal in _animals)
         {
             foreach (var s in str.Split(" "))
             {
@@ -118,7 +120,7 @@ public class Actions
 
     private Animal ChooseAnimal(string name)
     {
-        return Animals.Where(animal => animal.Name.Equals(name)).FirstOrDefault();
+        return _animals.Where(animal => animal.Name.Equals(name)).FirstOrDefault();
     }
     public void EditName(string newName, string name)
     {
@@ -151,7 +153,7 @@ public class Actions
     }
     
     public bool CheckName(string name) =>
-        Animals.Any(animal => animal.Name.ToLower() == name);
+        _animals.Any(animal => animal.Name.ToLower() == name);
     
     public void SerialiseToXml()
     {

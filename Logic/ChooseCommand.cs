@@ -137,6 +137,8 @@ public static class ChooseCommand
                 return;
 
             case "добавить":
+                if(MessageNonAdmin(message)) return;
+                
                 _buttons = ViewTelegram.GetInlineButtons(
                     new[] { "Членистоногое", "Ракообразное", "Млекопитающее", "Рыба" });
                     
@@ -146,10 +148,12 @@ public static class ChooseCommand
                 
             case "отобразить":
                 ViewTelegram.SendMessage(
-                    message, _actions.Display(_actions.Animals), null!);
+                    message, _actions.Display(), null!);
                 return;
             
             case "удалить":
+                if(MessageNonAdmin(message)) return;
+                
                 ViewTelegram.SendMessage(
                     message, "Введи имя морского обитателя", null);
                 _deleteName = "";
@@ -170,6 +174,8 @@ public static class ChooseCommand
                 return;
             
             case "изменить":
+                if(MessageNonAdmin(message)) return;
+                
                 ViewTelegram.SendMessage(
                     message, "Введи имя морского обитателя", null);
                 _editName = "";
@@ -179,7 +185,6 @@ public static class ChooseCommand
         _buttons = ViewTelegram.GetButtons(new[] { "/start", "", "", "", "", "" });
         ViewTelegram.SendMessage(message, "Такой команды нет", _buttons);
     }
-    
     public static void HandleCallbackQuery(CallbackQuery? callbackQuery)
     {
         if (callbackQuery?.Data == null || callbackQuery.Message == null) return;
@@ -241,7 +246,17 @@ public static class ChooseCommand
                 return;
         }
     }
+    private static bool MessageNonAdmin(Message message)
+    {
+        if (message.Chat.Id != 801384711)
+        {
+            ViewTelegram.SendMessage(
+                message, "Вы не являетесь администратором.", null);
+            return true;
+        }
 
+        return false;
+    }
     private static void MessageDone(Message message)
     {
         ViewTelegram.SendMessage(

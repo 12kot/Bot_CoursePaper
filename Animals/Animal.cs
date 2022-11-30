@@ -2,7 +2,7 @@
 
 namespace Bot_CoursePaper.Animals;
 
-public abstract class Animal : IMove
+public abstract class Animal
 {
     private string _name = "";
     public string Name
