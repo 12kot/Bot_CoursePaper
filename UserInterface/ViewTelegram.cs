@@ -11,7 +11,7 @@ namespace Bot_CoursePaper.UserInterface
 {
     static class ViewTelegram
     {
-        static ITelegramBotClient bot = new TelegramBotClient("5603713455:AAGTlrFcSOBUrr0qZ2zVJZBiu0u5P-T5n1Y");
+        static ITelegramBotClient bot = new TelegramBotClient("TOKEN");
 
         static void Main(string[] args)
         {
