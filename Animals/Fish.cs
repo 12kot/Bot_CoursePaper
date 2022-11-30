@@ -9,11 +9,5 @@ public class Fish : Vertebrate
         AnimalType = "Рыба";
     }
 
-    public override string Move() => $"Я {AnimalType}";
-    
     private Fish(){}
-    /*public override string ToString()
-    {
-        return $"{AnimalType, 14}\t" + base.ToString();
-    }*/
 }

@@ -8,12 +8,6 @@ public class Mammal : Vertebrate
     {
         AnimalType = "Млекопитающее";
     }
-    
-    public override string Move() => $"Я {AnimalType}";
-    
+
     private Mammal(){}
-    /*public override string ToString()
-    {
-        return $"{AnimalType, 14}\t" + base.ToString();
-    }*/
 }

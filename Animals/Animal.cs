@@ -47,8 +47,6 @@ public abstract class Animal
         Age = age;
     }
 
-    public abstract string Move();
-
     public override string ToString()
     {
         return "<pre>" + AnimalClass +

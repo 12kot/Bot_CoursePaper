@@ -8,12 +8,6 @@ public class Arthropod : Invertebrate
     {
         AnimalType = "Членистоногое";
     }
-    
-    public override string Move() => $"Я {AnimalType}";
 
     private Arthropod(){}
-        /*public override string ToString()
-        {
-            return $"{AnimalType, 14}\t" + base.ToString();
-        }*/
 }
