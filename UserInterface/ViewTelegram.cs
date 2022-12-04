@@ -11,11 +11,12 @@ namespace Bot_CoursePaper.UserInterface
 {
     static class ViewTelegram
     {
-        static ITelegramBotClient bot = new TelegramBotClient("TOKEN");
-
+        static ITelegramBotClient bot = new TelegramBotClient("5603713455:AAGTlrFcSOBUrr0qZ2zVJZBiu0u5P-T5n1Y");
+        private static ChooseCommand chooseCommand = new ();
+        
         static void Main(string[] args)
         {
-            ChooseCommand.Deserialize();
+            chooseCommand.Deserialize();
 
             Console.WriteLine("Запущен бот " + bot.GetMeAsync().Result.FirstName);
 
@@ -34,7 +35,7 @@ namespace Bot_CoursePaper.UserInterface
             );
 
             Console.ReadLine();
-            ChooseCommand.Serialize();
+            chooseCommand.Serialize();
         }
         
         private static async Task Update(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -43,8 +44,8 @@ namespace Bot_CoursePaper.UserInterface
             Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(update));
 
             if (update.Type == UpdateType.CallbackQuery)
-            {
-               ChooseCommand.HandleCallbackQuery(update.CallbackQuery);
+            { 
+                chooseCommand.HandleCallbackQuery(update.CallbackQuery);
                 return;
             }
             
@@ -52,7 +53,7 @@ namespace Bot_CoursePaper.UserInterface
             
             if (update.Type == UpdateType.Message && update.Message?.Text != null)
             {
-                ChooseCommand.HandlerMessage(update.Message);
+                chooseCommand.HandlerMessage(update.Message);
                 return;
             }
 
@@ -67,7 +68,7 @@ namespace Bot_CoursePaper.UserInterface
             await bot.SendTextMessageAsync(message.Chat.Id, text, 
                 replyMarkup: replyMarkup, parseMode: ParseMode.Html);
         }
-        
+
         public static IReplyMarkup GetButtons(string[] btn)
         {
             ReplyKeyboardMarkup keyboardMarkup = new(new[]

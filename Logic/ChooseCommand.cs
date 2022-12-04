@@ -6,18 +6,18 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Bot_CoursePaper.Logic;
 
-public static class ChooseCommand
+public class ChooseCommand
 {
-    private static Actions _actions = new ();
+    private Actions _actions = new ();
 
-    private static string _newAnimal = "", //для создания животного
+    private string _newAnimal = "", //для создания животного
         _search = "undefined", //для поиска 
         _deleteName = "undefined", //для удаления
-        _editName = "undefined", _eName = "undefined", _eAge = "undefined", _ePopulation = "undefined";
+        _edit = "undefined", _eName = "undefined", _eAge = "undefined", _ePopulation = "undefined";
 
-    private static IReplyMarkup _buttons = null!;
+    private IReplyMarkup _buttons = null!;
 
-    public static void Deserialize()
+    public void Deserialize()
     {
         XmlSerializer xmlSerializer = new XmlSerializer(typeof(Actions));
         
@@ -33,159 +33,192 @@ public static class ChooseCommand
 
         textReader.Close();
     }
-    public static void Serialize() 
+    public void Serialize() 
     {
-        _actions.SerialiseToXml();
+         _actions.SerialiseToXml();
     }
     
-    public static void HandlerMessage(Message message)
+    public async void HandlerMessage(Message message)
     {
         if (message.Text == null) return;
         
         string messText = message.Text.ToLower().Trim();
         
-        if (_newAnimal != "")
-        {
-            _newAnimal += messText;
-                
-            ViewTelegram.SendMessage(message, 
-                _actions.AddAnimal(_newAnimal), null);
-                
-            _newAnimal = "";
-            return;
-        }
-
-        if (_search == "")
-        {
-            ViewTelegram.SendMessage(message,
-                _actions.Display(_actions.Search(messText)), null);
-                
-            _search = messText;
-            return;
-        }
-        
-        if (_deleteName == "")
-        {
-            ViewTelegram.SendMessage(message,
-                _actions.RemoveAnimal(messText), null);
-                
-            _deleteName = messText;
-            return;
-        }
-        
-        if (_editName == "")
-        {
-            if (!_actions.CheckName(messText))
-            {
-                ViewTelegram.SendMessage(message,
-                    "Морские обитатели с данным именем не найдены", null);
-                _editName = "undefined";
-                return;
-            }
-
-            _editName = messText;
-            _buttons = ViewTelegram.GetInlineButtons(
-                new[] { "Изм. имя", "Изм. возраст", "Изм. популяцию", " " });
-                            
-            ViewTelegram.SendMessage(
-                message, "Что вы хотите изменить", _buttons);
-            return;
-        }
-
-        if (_eName == "")
-        {
-            if(_actions.CheckName(messText)) {
-                ViewTelegram.SendMessage(message,
-                    "Морские обитатели с данным именем уже существуют", null);
-                _eName = "undefined";
-                return;
-            }
-
-            _eName = messText;
-            _actions.EditName(_eName, _editName);
-            
-            MessageDone(message);
-            return;
-        }
-        
-        if (_eAge == "")
-        {
-            _eAge = messText;
-            _actions.EditAge(_eAge, _editName);
-            
-            MessageDone(message);
-            return;
-        }
-        
-        if (_ePopulation == "")
-        {
-            _ePopulation = messText;
-            _actions.EditPopulation(_ePopulation, _editName);
-            
-            MessageDone(message);
-            return;
-        }
+        if(await CheckActions(message, messText)) return;
         
         switch (messText)
         {
             case "/start":
-                _buttons = ViewTelegram.GetButtons(
-                    new[] { "Добавить", "Удалить", "Отобразить", "Отсортировать", "Поиск", "Изменить" });
-                
-                ViewTelegram.SendMessage(message, $"Привет, {message.Chat.FirstName}\n" +
-                                                  "Выбери действие", _buttons);
+                StartMessage(message);
                 return;
 
             case "добавить":
-                if(MessageNonAdmin(message)) return;
-                
-                _buttons = ViewTelegram.GetInlineButtons(
-                    new[] { "Членистоногое", "Ракообразное", "Млекопитающее", "Рыба" });
-                    
-                ViewTelegram.SendMessage(
-                    message, "Выберите тип морского обитателя", _buttons);
+                AddMessage(message);
                 return;
                 
             case "отобразить":
-                ViewTelegram.SendMessage(
-                    message, _actions.Display(), null!);
+               OutputMessage(message);
                 return;
             
             case "удалить":
-                if(MessageNonAdmin(message)) return;
-                
-                ViewTelegram.SendMessage(
-                    message, "Введи имя морского обитателя", null);
-                _deleteName = "";
+                DeleteMessage(message);
                 return;
                 
             case "отсортировать":
-                _buttons = ViewTelegram.GetInlineButtons(
-                    new[] { "Класс", "Имя", "Возраста", "Популяция" });
-                    
-                ViewTelegram.SendMessage(
-                    message, "Выбери критерий для сортировки", _buttons);
+                SortMessage(message);
                 return;
                 
             case "поиск":
-                ViewTelegram.SendMessage(
-                    message, "Введи имеющуюся информацию", null);
-                _search = "";
+                SearchMessage(message);
                 return;
             
             case "изменить":
-                if(MessageNonAdmin(message)) return;
-                
-                ViewTelegram.SendMessage(
-                    message, "Введи имя морского обитателя", null);
-                _editName = "";
+                EditMessage(message);
                 return;
         }
 
         _buttons = ViewTelegram.GetButtons(new[] { "/start", "", "", "", "", "" });
-        ViewTelegram.SendMessage(message, "Такой команды нет", _buttons);
+        await ViewTelegram.SendMessage(message, "Такой команды нет", _buttons);
     }
-    public static void HandleCallbackQuery(CallbackQuery? callbackQuery)
+    private   async Task<bool> CheckActions(Message message, string messText)
+    {
+         if (_newAnimal != "")
+         {
+             _newAnimal += messText;
+                
+             await ViewTelegram.SendMessage(message, 
+                 _actions.AddAnimal(_newAnimal), null!);
+                
+             _newAnimal = "";
+             return true;
+         }
+
+         if (_search == "")
+         {
+             await ViewTelegram.SendMessage(message,
+                 _actions.Display(_actions.Search(messText)), null!);
+                
+             _search = messText;
+             return true;
+         }
+        
+         if (_deleteName == "")
+         {
+             await ViewTelegram.SendMessage(message,
+                 _actions.RemoveAnimal(messText), null!);
+                
+             _deleteName = messText;
+             return true;
+         }
+        
+         if (_edit == "")
+         {
+             if (!_actions.CheckName(messText))
+             {
+                 await ViewTelegram.SendMessage(message,
+                     "Морские обитатели с данным именем не найдены", null!);
+                 _edit = "undefined";
+                 return true;
+             }
+
+             _edit = messText;
+             _buttons = ViewTelegram.GetInlineButtons(
+                 new[] { "Изм. имя", "Изм. возраст", "Изм. популяцию", " " });
+                            
+             await ViewTelegram.SendMessage(
+                 message, "Что вы хотите изменить", _buttons);
+             return true;
+         }
+
+         if (_eName == "")
+         {
+             if(_actions.CheckName(messText)) {
+                 await ViewTelegram.SendMessage(message,
+                     "Морские обитатели с данным именем уже существуют", null!);
+                 _eName = "undefined";
+                 return true;
+             }
+
+             _eName = messText;
+             _actions.EditName(_eName, _edit);
+            
+             MessageDone(message);
+             return true;
+         }
+        
+         if (_eAge == "")
+         {
+             _eAge = messText;
+             _actions.EditAge(_eAge, _edit);
+            
+             MessageDone(message);
+             return true;
+         }
+        
+         if (_ePopulation == "")
+         {
+             _ePopulation = messText;
+             _actions.EditPopulation(_ePopulation, _edit);
+            
+             MessageDone(message);
+             return true;
+         }
+
+         return false;
+    }
+    
+    private async void StartMessage(Message message)
+    {
+        _buttons = ViewTelegram.GetButtons(
+            new[] { "Добавить", "Удалить", "Отобразить", "Отсортировать", "Поиск", "Изменить" });
+        await ViewTelegram.SendMessage(message, $"Привет, {message.Chat.FirstName}\n" +
+                                                "Выбери действие", _buttons);
+    }
+    
+    private async void AddMessage(Message message) {//if(await MessageNonAdmin(message)) return;
+        _buttons = ViewTelegram.GetInlineButtons(
+            new[] { "Членистоногое", "Ракообразное", "Млекопитающее", "Рыба" });
+        await ViewTelegram.SendMessage(
+            message, "Выберите тип морского обитателя", _buttons);
+    }
+    
+    private async void OutputMessage(Message message)
+    {
+        await ViewTelegram.SendMessage(
+            message, _actions.Display(), null!);
+    }
+    
+    private async void DeleteMessage(Message message)
+    {  //if(await MessageNonAdmin(message)) return;
+        await ViewTelegram.SendMessage(
+            message, "Введи имя морского обитателя", null!);
+        _deleteName = "";
+    }
+    
+    private async void SortMessage(Message message)
+    {
+        _buttons =  ViewTelegram.GetInlineButtons(
+            new[] { "Класс", "Имя", "Возраст", "Популяция" });
+        await ViewTelegram.SendMessage(
+            message, "Выбери критерий для сортировки", _buttons);
+    }
+    
+    private async void SearchMessage(Message message)
+    {
+        await ViewTelegram.SendMessage(
+            message, "Введи имеющуюся информацию", null!);
+        _search = "";
+    }
+    
+    private async void EditMessage(Message message)
+    { //  if(await MessageNonAdmin(message)) return;
+        await ViewTelegram.SendMessage(
+            message, "Введи имя морского обитателя", null!);
+        _edit = "";
+    }
+    
+    
+    public void HandleCallbackQuery(CallbackQuery? callbackQuery)
     {
         if (callbackQuery?.Data == null || callbackQuery.Message == null) return;
         
@@ -194,72 +227,110 @@ public static class ChooseCommand
         switch (data)
         { 
             case "класс": 
-                _actions.SortByClass();
-                
-                ViewTelegram.SendMessage(
-                        callbackQuery.Message, "Сортировка по классам выполнена.", null);
+                SortClass(callbackQuery.Message);
                 return;
                 
             case "имя": 
-                _actions.SortByName();
-                ViewTelegram.SendMessage(
-                        callbackQuery.Message,"Сортировка по имени выполнена.", null);
+                SortName(callbackQuery.Message);
                 return;
                 
             case "возраст": 
-                _actions.SortByAge();
-                ViewTelegram.SendMessage(
-                        callbackQuery.Message, "Сортировка по возрасту выполнена.", null);
+                SortAge(callbackQuery.Message);
                 return;
                 
             case "популяция": 
-                _actions.SortByPopulation();
-                ViewTelegram.SendMessage(
-                        callbackQuery.Message, "Сортировка по популяции выполнена.", null);
+                SortPopulation(callbackQuery.Message);
                 return;
                 
             case "членистоногое": 
             case "ракообразное": 
             case "млекопитающее": 
             case "рыба":
-                _newAnimal = data + " ";
-                ViewTelegram.SendMessage(
-                        callbackQuery.Message, "Введи доп. информацию (ИМЯ ПОПУЛЯЦИЯ ВОЗРАСТ)", null);
+                AddAnimal(callbackQuery.Message, data);
                 return;
             
             case "изм. имя":
-                ViewTelegram.SendMessage(callbackQuery.Message,
-                    "Введите новое имя для морского обитателя", null);
-                _eName = "";
+                EditName(callbackQuery.Message);
                 return;
             
             case "изм. возраст":
-                ViewTelegram.SendMessage(callbackQuery.Message,
-                    "Введите новый возраст для морского обитателя", null);
-                _eAge = "";
+                EditAge(callbackQuery.Message);
                 return;
             
             case "изм. популяцию":
-                ViewTelegram.SendMessage(callbackQuery.Message,
-                    "Введите новую популяцию для морского обитателя", null);
-                _ePopulation = "";
+                EditPopulation(callbackQuery.Message);
                 return;
         }
     }
-    private static bool MessageNonAdmin(Message message)
-    {
-        if (message.Chat.Id != 801384711)
-        {
-            ViewTelegram.SendMessage(
-                message, "Вы не являетесь администратором.", null);
-            return true;
-        }
 
-        return false;
-    }
-    private static void MessageDone(Message message)
+    private async void SortClass(Message message)
     {
-        ViewTelegram.SendMessage(
-            message, "Готово", null);
+        _actions.SortByClass();
+        await ViewTelegram.SendMessage(
+            message, "Сортировка по классам выполнена.", null!);
+    }
+    
+    private async void SortName(Message message)
+    {
+        _actions.SortByName();
+        await ViewTelegram.SendMessage(
+            message,"Сортировка по имени выполнена.", null!);
+    }
+    
+    private async void SortAge(Message message)
+    {
+        _actions.SortByAge();
+        await ViewTelegram.SendMessage(
+            message, "Сортировка по возрасту выполнена.", null!);
+    }
+    
+    private async void SortPopulation(Message message)
+    {
+        _actions.SortByPopulation();
+        await ViewTelegram.SendMessage(
+            message, "Сортировка по популяции выполнена.", null!);
+    }
+    
+    private async void AddAnimal(Message message, string data)
+    {
+        _newAnimal = data + " ";
+        await ViewTelegram.SendMessage(
+            message, "Введи доп. информацию (ИМЯ ПОПУЛЯЦИЯ ВОЗРАСТ)", null!);
+    }
+    
+    private async void EditName(Message message)
+    {
+        await ViewTelegram.SendMessage(message,
+            "Введите новое имя для морского обитателя", null!);
+        _eName = "";
+    }
+    
+    private async void EditAge(Message message)
+    {
+        await ViewTelegram.SendMessage(message,
+            "Введите новый возраст для морского обитателя", null!);
+        _eAge = "";
+    }
+    
+    private async void EditPopulation(Message message)
+    {
+        await ViewTelegram.SendMessage(message,
+            "Введите новую популяцию для морского обитателя", null!);
+        _ePopulation = "";
+    }
+
+    
+    private async Task<bool> MessageNonAdmin(Message message)
+    {
+        if (message.Chat.Id == 801384711) return false;
+        await ViewTelegram.SendMessage(
+            message, "Вы не являетесь администратором.", null!);
+        return true;
+
+    }
+    private async void MessageDone(Message message)
+    {
+         await ViewTelegram.SendMessage(
+            message, "Готово", null!);
     }
 }

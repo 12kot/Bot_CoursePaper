@@ -10,20 +10,20 @@ namespace Bot_CoursePaper.Logic;
 
 public class Actions
 {
-    private readonly List<Animal> _animals = new List<Animal>();
+    public List<Animal> Animals { get; set; } = new ();
 
     public void SortByClass() =>
-        _animals.Sort((x, y) => String.Compare(x.AnimalClass, y.AnimalClass,
+        Animals.Sort((x, y) => String.Compare(x.AnimalClass, y.AnimalClass,
             StringComparison.Ordinal));
     
     public void SortByName() =>
-        _animals.Sort((x, y) => String.Compare(x.Name, y.Name, StringComparison.Ordinal));
+        Animals.Sort((x, y) => String.Compare(x.Name, y.Name, StringComparison.Ordinal));
     
     public void SortByAge() =>
-        _animals.Sort((x, y) => x.Age.CompareTo(y.Age));
+        Animals.Sort((x, y) => x.Age.CompareTo(y.Age));
     
     public void SortByPopulation() =>
-        _animals.Sort((x, y) => x.Population.CompareTo(y.Population));
+        Animals.Sort((x, y) => x.Population.CompareTo(y.Population));
     
     public string AddAnimal(string str)
     {
@@ -41,16 +41,16 @@ public class Actions
             switch (st[0])
             {
                 case "членистоногое":
-                    _animals.Add(new Arthropod(st[1], Int32.Parse(st[2]), Int32.Parse(st[3])));
+                    Animals.Add(new Arthropod(st[1], Int32.Parse(st[2]), Int32.Parse(st[3])));
                     break;
                 case "ракообразное":
-                    _animals.Add(new Crustacean(st[1], Int32.Parse(st[2]), Int32.Parse(st[3])));
+                    Animals.Add(new Crustacean(st[1], Int32.Parse(st[2]), Int32.Parse(st[3])));
                     break;
                 case "млекопитающее":
-                    _animals.Add(new Mammal(st[1], Int32.Parse(st[2]), Int32.Parse(st[3])));
+                    Animals.Add(new Mammal(st[1], Int32.Parse(st[2]), Int32.Parse(st[3])));
                     break;
                 case "рыба":
-                    _animals.Add(new Fish(st[1], Int32.Parse(st[2]), Int32.Parse(st[3])));
+                    Animals.Add(new Fish(st[1], Int32.Parse(st[2]), Int32.Parse(st[3])));
                     break;
 
                 default:
@@ -67,11 +67,11 @@ public class Actions
 
     public string RemoveAnimal(string name)
     {
-        if(_animals.Count == 0) return "Морские обитатели отсутствуют";
+        if(Animals.Count == 0) return "Морские обитатели отсутствуют";
 
-        foreach (var animal in _animals.Where(animal => animal.Name.Equals(name)))
+        foreach (var animal in Animals.Where(animal => animal.Name.Equals(name)))
         {
-            _animals.Remove(animal);
+            Animals.Remove(animal);
             return Display(new List<Animal> {animal} ) + "\nУспешно удалён";
         }
         
@@ -80,7 +80,7 @@ public class Actions
 
     public string Display()
     {
-        return Display(_animals);
+        return Display(Animals);
     }
     public string Display(List<Animal> animals)
     {
@@ -98,12 +98,12 @@ public class Actions
 
     public List<Animal> Search(string str)
     {
-        if (_animals.Count == 0) return new List<Animal>();
+        if (Animals.Count == 0) return new List<Animal>();
         
         List<string> names = new List<string>();
         List<Animal> an = new List<Animal>();
 
-        foreach (var animal in _animals)
+        foreach (var animal in Animals)
         {
             foreach (var s in str.Split(" "))
             {
@@ -120,40 +120,39 @@ public class Actions
 
     private Animal ChooseAnimal(string name)
     {
-        return _animals.Where(animal => animal.Name.Equals(name)).FirstOrDefault();
+        return Animals.First(animal => animal.Name.Equals(name));
     }
     public void EditName(string newName, string name)
     {
         Animal animal = ChooseAnimal(name);
         animal.Name = newName;
     }
-    
-    public void EditAge(string a, string name)
+
+    private static int TryInt(string str)
     {
-        Animal animal = ChooseAnimal(name);
-        int age = 0;
         try
         {
-            age = Int32.Parse(a);
-        } catch {return;}
-
-        animal.Age = age;
+            return Int32.Parse(str);
+        }
+        catch
+        {
+            return -1;
+        }
+    }
+    public void EditAge(string str, string name)
+    {
+        Animal animal = ChooseAnimal(name);
+        animal.Age = TryInt(str);
     }
 
-    public void EditPopulation(string pop, string name)
+    public void EditPopulation(string str, string name)
     {
         Animal animal = ChooseAnimal(name);
-        int population = 0;
-        try
-        {
-            population = Int32.Parse(pop);
-        } catch {return;}
-
-        animal.Population = population;
+        animal.Population = TryInt(str);;
     }
     
     public bool CheckName(string name) =>
-        _animals.Any(animal => animal.Name.ToLower() == name);
+        Animals.Any(animal => animal.Name.ToLower() == name);
     
     public void SerialiseToXml()
     {
