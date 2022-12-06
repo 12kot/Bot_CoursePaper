@@ -9,6 +9,7 @@ namespace Bot_CoursePaper.Logic;
 public class ChooseCommand
 {
     private Actions _actions = new ();
+    private List<string> _admins = new List<string>() {"kod41"};
 
     private string _newAnimal = "", //для создания животного
         _search = "undefined", //для поиска 
@@ -17,25 +18,42 @@ public class ChooseCommand
 
     private IReplyMarkup _buttons = null!;
 
-    public void Deserialize()
+    public void Deserialize(string ocean, string admins)
     {
         XmlSerializer xmlSerializer = new XmlSerializer(typeof(Actions));
         
-        XmlReader textReader = XmlReader.Create(@"C:\Users\User\RiderProjects\Bot_CoursePaper\Bot_CoursePaper\ocean.xml");
+        XmlReader textReader = XmlReader.Create(ocean);
         try
         {
             _actions = (Actions)xmlSerializer.Deserialize(textReader);
         }
         catch
         {
-            // ignored
+            //ignored
         }
 
+        xmlSerializer = new XmlSerializer(typeof(List<string>));
+        textReader = XmlReader.Create(admins);
+        try
+        {
+            _admins = (List<string>)xmlSerializer.Deserialize(textReader) ?? new List<string> {"kod41"};
+        }
+        catch
+        {
+            //ignored
+        }
+        
         textReader.Close();
     }
-    public void Serialize() 
+    public void Serialize(string ocean, string admins) 
     {
-         _actions.SerialiseToXml();
+        XmlSerializer xmlSerializer = new XmlSerializer(typeof(Actions));
+        StreamWriter write = new StreamWriter(ocean);
+        xmlSerializer.Serialize(write, _actions);
+        
+        xmlSerializer = new XmlSerializer(typeof(List<string>));
+        write = new StreamWriter(admins);
+        xmlSerializer.Serialize(write, _admins);
     }
     
     public async void HandlerMessage(Message message)
@@ -45,7 +63,7 @@ public class ChooseCommand
         string messText = message.Text.ToLower().Trim();
         
         if(await CheckActions(message, messText)) return;
-        
+
         switch (messText)
         {
             case "/start":
@@ -75,6 +93,13 @@ public class ChooseCommand
             case "изменить":
                 EditMessage(message);
                 return;
+        }
+        
+        if (messText.StartsWith("add admin"))
+        {
+            if (!await IsAdmin(message)) return;
+            AddAdmin(message, messText);
+            return;
         }
 
         _buttons = ViewTelegram.GetButtons(new[] { "/start", "", "", "", "", "" });
@@ -142,7 +167,7 @@ public class ChooseCommand
              _eName = messText;
              _actions.EditName(_eName, _edit);
             
-             MessageDone(message);
+             DoneMessage(message);
              return true;
          }
         
@@ -151,7 +176,7 @@ public class ChooseCommand
              _eAge = messText;
              _actions.EditAge(_eAge, _edit);
             
-             MessageDone(message);
+             DoneMessage(message);
              return true;
          }
         
@@ -160,7 +185,7 @@ public class ChooseCommand
              _ePopulation = messText;
              _actions.EditPopulation(_ePopulation, _edit);
             
-             MessageDone(message);
+             DoneMessage(message);
              return true;
          }
 
@@ -175,7 +200,9 @@ public class ChooseCommand
                                                 "Выбери действие", _buttons);
     }
     
-    private async void AddMessage(Message message) {//if(await MessageNonAdmin(message)) return;
+    private async void AddMessage(Message message) {
+        if(!await IsAdmin(message)) return;
+        
         _buttons = ViewTelegram.GetInlineButtons(
             new[] { "Членистоногое", "Ракообразное", "Млекопитающее", "Рыба" });
         await ViewTelegram.SendMessage(
@@ -189,7 +216,9 @@ public class ChooseCommand
     }
     
     private async void DeleteMessage(Message message)
-    {  //if(await MessageNonAdmin(message)) return;
+    {  
+        if(!await IsAdmin(message)) return;
+        
         await ViewTelegram.SendMessage(
             message, "Введи имя морского обитателя", null!);
         _deleteName = "";
@@ -211,7 +240,9 @@ public class ChooseCommand
     }
     
     private async void EditMessage(Message message)
-    { //  if(await MessageNonAdmin(message)) return;
+    { 
+        if(!await IsAdmin(message)) return;
+        
         await ViewTelegram.SendMessage(
             message, "Введи имя морского обитателя", null!);
         _edit = "";
@@ -320,17 +351,36 @@ public class ChooseCommand
     }
 
     
-    private async Task<bool> MessageNonAdmin(Message message)
+    private async Task<bool> IsAdmin(Message message)
     {
-        if (message.Chat.Id == 801384711) return false;
+        if (_admins.Contains(message.Chat.Username)) return true;
         await ViewTelegram.SendMessage(
             message, "Вы не являетесь администратором.", null!);
-        return true;
+        return false;
 
     }
-    private async void MessageDone(Message message)
+
+    private void AddAdmin(Message message,string messText)
+    {
+        try
+        {
+            _admins.Add(messText.Split(" ")[2]);
+            DoneMessage(message);
+        }
+        catch
+        {
+            ErrorMessage(message);
+        }
+        //_admins.Add();
+    } 
+    private async void DoneMessage(Message message)
     {
          await ViewTelegram.SendMessage(
             message, "Готово", null!);
+    }
+    private async void ErrorMessage(Message message)
+    {
+        await ViewTelegram.SendMessage(
+            message, "Возникала ошибка", null!);
     }
 }

@@ -154,10 +154,5 @@ public class Actions
     public bool CheckName(string name) =>
         Animals.Any(animal => animal.Name.ToLower() == name);
     
-    public void SerialiseToXml()
-    {
-        XmlSerializer xmlSerializer = new XmlSerializer(GetType());
-        StreamWriter write = new StreamWriter(@"C:\Users\User\RiderProjects\Bot_CoursePaper\Bot_CoursePaper\ocean.xml");
-        xmlSerializer.Serialize(write, this);
-    }
+    public Actions(){}
 }
