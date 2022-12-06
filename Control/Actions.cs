@@ -1,7 +1,7 @@
 ﻿using System.Xml.Serialization;
-using Bot_CoursePaper.Animals;
+using Bot_CoursePaper.Model;
 
-namespace Bot_CoursePaper.Logic;
+namespace Bot_CoursePaper.Control;
 
 [XmlInclude(typeof(Mammal))]
 [XmlInclude(typeof(Fish))]

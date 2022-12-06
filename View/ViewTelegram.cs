@@ -1,25 +1,23 @@
-﻿using Bot_CoursePaper.Logic;
+﻿using Bot_CoursePaper.Control;
 using Telegram.Bot;
 using Telegram.Bot.Extensions.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-//при создании ToLower()
-// в get увеличить Имя
-//кнопка изменить
-namespace Bot_CoursePaper.UserInterface
+
+namespace Bot_CoursePaper.View
 {
     static class ViewTelegram
     {
         static ITelegramBotClient bot = new TelegramBotClient("5603713455:AAGTlrFcSOBUrr0qZ2zVJZBiu0u5P-T5n1Y");
         private static ChooseCommand chooseCommand = new ();
 
-        private readonly static string _oceanPath = @"C:\Users\User\RiderProjects\Bot_CoursePaper\Bot_CoursePaper\ocean.xml",
-            _adminsPath = @"C:\Users\User\RiderProjects\Bot_CoursePaper\Bot_CoursePaper\admins.xml";
+        private const string OceanPath = @"C:\Users\User\RiderProjects\Bot_CoursePaper\Bot_CoursePaper\ocean.xml",
+             AdminsPath = @"C:\Users\User\RiderProjects\Bot_CoursePaper\Bot_CoursePaper\admins.xml";
 
         static void Main(string[] args)
         {
-            chooseCommand.Deserialize(_oceanPath, _adminsPath);
+            chooseCommand.Deserialize(OceanPath, AdminsPath);
 
             Console.WriteLine("Запущен бот " + bot.GetMeAsync().Result.FirstName);
 
@@ -38,7 +36,7 @@ namespace Bot_CoursePaper.UserInterface
             );
 
             Console.ReadLine();
-            chooseCommand.Serialize(_oceanPath, _adminsPath);
+            chooseCommand.Serialize(OceanPath, AdminsPath);
         }
         
         private static async Task Update(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)

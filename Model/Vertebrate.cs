@@ -1,4 +1,4 @@
-﻿namespace Bot_CoursePaper.Animals;
+﻿namespace Bot_CoursePaper.Model;
 // Позвоночные
 
 public abstract class Vertebrate : Animal

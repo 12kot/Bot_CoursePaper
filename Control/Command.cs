@@ -1,10 +1,10 @@
 ﻿using System.Xml;
 using System.Xml.Serialization;
-using Bot_CoursePaper.UserInterface;
+using Bot_CoursePaper.View;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace Bot_CoursePaper.Logic;
+namespace Bot_CoursePaper.Control;
 
 public class ChooseCommand
 {
@@ -20,40 +20,13 @@ public class ChooseCommand
 
     public void Deserialize(string ocean, string admins)
     {
-        XmlSerializer xmlSerializer = new XmlSerializer(typeof(Actions));
-        
-        XmlReader textReader = XmlReader.Create(ocean);
-        try
-        {
-            _actions = (Actions)xmlSerializer.Deserialize(textReader);
-        }
-        catch
-        {
-            //ignored
-        }
-
-        xmlSerializer = new XmlSerializer(typeof(List<string>));
-        textReader = XmlReader.Create(admins);
-        try
-        {
-            _admins = (List<string>)xmlSerializer.Deserialize(textReader) ?? new List<string> {"kod41"};
-        }
-        catch
-        {
-            //ignored
-        }
-        
-        textReader.Close();
+        _actions = DoFile.Deserialize<Actions>(ocean);
+        _admins = DoFile.Deserialize<List<string>>(admins);
     }
     public void Serialize(string ocean, string admins) 
     {
-        XmlSerializer xmlSerializer = new XmlSerializer(typeof(Actions));
-        StreamWriter write = new StreamWriter(ocean);
-        xmlSerializer.Serialize(write, _actions);
-        
-        xmlSerializer = new XmlSerializer(typeof(List<string>));
-        write = new StreamWriter(admins);
-        xmlSerializer.Serialize(write, _admins);
+        DoFile.Serialize(_actions, ocean);
+        DoFile.Serialize(_admins, admins);
     }
     
     public async void HandlerMessage(Message message)
@@ -196,6 +169,13 @@ public class ChooseCommand
     {
         _buttons = ViewTelegram.GetButtons(
             new[] { "Добавить", "Удалить", "Отобразить", "Отсортировать", "Поиск", "Изменить" });
+        
+        if (!await IsAdmin(message))
+        {
+            _buttons = ViewTelegram.GetButtons(
+                new[] { "", "", "Отобразить", "Отсортировать", "Поиск", "" });
+        }
+        
         await ViewTelegram.SendMessage(message, $"Привет, {message.Chat.FirstName}\n" +
                                                 "Выбери действие", _buttons);
     }
@@ -353,7 +333,7 @@ public class ChooseCommand
     
     private async Task<bool> IsAdmin(Message message)
     {
-        if (_admins.Contains(message.Chat.Username)) return true;
+        if (_admins.Contains(message.Chat.Username.ToLower())) return true;
         await ViewTelegram.SendMessage(
             message, "Вы не являетесь администратором.", null!);
         return false;
@@ -371,7 +351,6 @@ public class ChooseCommand
         {
             ErrorMessage(message);
         }
-        //_admins.Add();
     } 
     private async void DoneMessage(Message message)
     {

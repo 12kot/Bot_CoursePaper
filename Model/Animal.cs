@@ -1,6 +1,4 @@
-﻿using Bot_CoursePaper.Logic;
-
-namespace Bot_CoursePaper.Animals;
+﻿namespace Bot_CoursePaper.Model;
 
 public abstract class Animal
 {
@@ -37,7 +35,6 @@ public abstract class Animal
         }
     }
     
-
     public string AnimalClass => this is Invertebrate ? "беспозвоночное" : "позвоночное";
 
     protected Animal(string name, int population, int age)
